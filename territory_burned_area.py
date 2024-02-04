@@ -47,7 +47,7 @@ territory_fire_sum = territory_fire_sum.sort_values('area_fire_ha', ascending=Fa
 #%% Gráfico de Barra
 # Criar o gráfico de barras usando Seaborn
 plt.figure(figsize=(10, 8))  # Ajustar o tamanho conforme necessário
-sns.barplot(x='area_fire_ha', y='territory', data=territory_fire_sum, palette='viridis')
+sns.barplot(x='area_fire_ha', y='territory', data=territory_fire_sum, palette='Spectral')
 
 # Formatar o eixo X para usar 'mil' em vez de notação científica
 # Função para formatar o eixo X
@@ -80,7 +80,7 @@ territory_fire_sum['percentage'] = (territory_fire_sum['area_fire_ha'] / territo
 territory_fire_sum = territory_fire_sum.sort_values('percentage', ascending=False)
 
 # Definir a paleta de cores
-colors = sns.color_palette('viridis', len(territory_fire_sum))
+colors = sns.color_palette('Spectral', len(territory_fire_sum))
 
 # Criar o gráfico de pizza com as cores definidas
 plt.figure(figsize=(10, 8))
@@ -92,41 +92,51 @@ plt.title('Porcentagem da Área Queimada por Categoria Fundiária')
 # Mostrar o gráfico
 plt.show()
 
-#%% Gráfico Anual por Categoria Fundiária
-# Primeiro, agregamos os dados
-df_grouped = df.groupby(['year', 'territory'])['area_fire_ha'].sum().unstack(fill_value=0)
 
-# Calculando a média de area_fire_ha para toda a série histórica
-annual_sum = df.groupby(['year'])['area_fire_ha'].sum()
+#%% Gráfico Anual por Categoria Fundiária
+# Calculando a média anual da área total afetada por incêndios
+annual_sum = df.groupby('year')['area_fire_ha'].sum()
 annual_mean = annual_sum.mean()
+
+# Ordenando as categorias pela soma total de area_fire_ha
+category_order = df.groupby('territory')['area_fire_ha'].sum().sort_values(ascending=False).index
+
+# Agrupando os dados por 'year' e 'territory' e reordenando as colunas conforme a soma total de area_fire_ha
+df_grouped = df.groupby(['year', 'territory'])['area_fire_ha'].sum().unstack(fill_value=0)[category_order]
 
 # Definindo uma função de formatação para o eixo Y
 def millions_formatter(x, pos):
     return '{:,.0f} mil'.format(x * 1e-3).replace(',', '.')
 
-# Preparar as cores
-palette = sns.color_palette('viridis', len(df_grouped.columns)).as_hex()
+# Preparando as cores
+palette = sns.color_palette('Spectral', len(df_grouped.columns)).as_hex()
 
-# Criar o gráfico de barras empilhadas
+# Criando o gráfico de barras empilhadas
 ax = df_grouped.plot(kind='bar', stacked=True, color=palette, figsize=(10, 8))
 
-# Adicionando a linha da média
-ax.axhline(annual_mean, color='red', linestyle='--', linewidth=2, label='Média anual: {:,.0f} ha'.format(annual_mean))
+# Adicionando a linha da média anual
+mean_line = ax.axhline(annual_mean, color='black', linestyle='--', linewidth=2)
 
-# Aplicar a formatação personalizada ao eixo Y
+# Aplicando a formatação personalizada ao eixo Y
 ax.yaxis.set_major_formatter(FuncFormatter(millions_formatter))
 
-# Adicionar rótulos e título
+# Adicionando rótulos e título
 plt.xlabel('Ano')
 plt.ylabel('Área Queimada (ha)')
 plt.title('Área Queimada por Categoria Fundiária')
-handles, labels = ax.get_legend_handles_labels()
-plt.legend(handles=handles, title='Legenda', loc='upper left')
 
-# Ajustar a legenda e os eixos
+# Ajustando a legenda e os eixos
 plt.xticks(rotation=45)
 plt.tight_layout()
 
+# Adicionando a linha de média à legenda
+from matplotlib.lines import Line2D
+legend_elements = [Line2D([0], [0], color='black', linestyle='--', linewidth=2, label='Média Anual')] + \
+                  [Line2D([0], [0], color=color, marker='s', linestyle='None', markersize=10, label=territory) for territory, color in zip(category_order, palette)]
+ax.legend(handles=legend_elements, title='Legenda')
+
 # Mostrar o gráfico
 plt.show()
-#%%
+
+
+# %%
