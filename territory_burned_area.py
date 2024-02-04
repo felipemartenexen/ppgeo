@@ -96,6 +96,10 @@ plt.show()
 # Primeiro, agregamos os dados
 df_grouped = df.groupby(['year', 'territory'])['area_fire_ha'].sum().unstack(fill_value=0)
 
+# Calculando a média de area_fire_ha para toda a série histórica
+annual_sum = df.groupby(['year'])['area_fire_ha'].sum()
+annual_mean = annual_sum.mean()
+
 # Definindo uma função de formatação para o eixo Y
 def millions_formatter(x, pos):
     return '{:,.0f} mil'.format(x * 1e-3).replace(',', '.')
@@ -106,6 +110,9 @@ palette = sns.color_palette('viridis', len(df_grouped.columns)).as_hex()
 # Criar o gráfico de barras empilhadas
 ax = df_grouped.plot(kind='bar', stacked=True, color=palette, figsize=(10, 8))
 
+# Adicionando a linha da média
+ax.axhline(annual_mean, color='red', linestyle='--', linewidth=2, label='Média anual: {:,.0f} ha'.format(annual_mean))
+
 # Aplicar a formatação personalizada ao eixo Y
 ax.yaxis.set_major_formatter(FuncFormatter(millions_formatter))
 
@@ -113,7 +120,8 @@ ax.yaxis.set_major_formatter(FuncFormatter(millions_formatter))
 plt.xlabel('Ano')
 plt.ylabel('Área Queimada (ha)')
 plt.title('Área Queimada por Categoria Fundiária')
-plt.legend(title='Categoria Fundiária')
+handles, labels = ax.get_legend_handles_labels()
+plt.legend(handles=handles, title='Legenda', loc='upper left')
 
 # Ajustar a legenda e os eixos
 plt.xticks(rotation=45)
