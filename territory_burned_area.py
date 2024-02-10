@@ -44,7 +44,7 @@ territory_fire_sum = df.groupby('territory')['area_fire_ha'].sum().reset_index()
 # Ordenar os valores para uma melhor visualização
 territory_fire_sum = territory_fire_sum.sort_values('area_fire_ha', ascending=False)
 
-#%% Gráfico de Barra
+#%% Gráfico de Barra - Acumulado por Categoria Fundiária
 # Criar o gráfico de barras usando Seaborn
 plt.figure(figsize=(10, 8))  # Ajustar o tamanho conforme necessário
 sns.barplot(x='area_fire_ha', y='territory', data=territory_fire_sum, palette='Spectral')
@@ -93,7 +93,7 @@ plt.title('Porcentagem da Área Queimada por Categoria Fundiária')
 plt.show()
 
 
-#%% Gráfico Anual por Categoria Fundiária
+#%% Gráfico Barra - Anual por Categoria Fundiária
 # Calculando a média anual da área total afetada por incêndios
 annual_sum = df.groupby('year')['area_fire_ha'].sum()
 annual_mean = annual_sum.mean()
@@ -139,4 +139,4 @@ ax.legend(handles=legend_elements, title='Legenda')
 plt.show()
 
 
-# %%
+#%%
