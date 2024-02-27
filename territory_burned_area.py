@@ -139,4 +139,108 @@ ax.legend(handles=legend_elements, title='Legenda')
 plt.show()
 
 
-#%%
+
+
+
+#%% Gráfico Box Plot por Categoria Fundiária
+# Passo 1: Converter df_grouped de volta para o formato longo
+df_long = df_grouped.stack().reset_index(name='area_fire_ha')
+df_long.rename(columns={'level_0': 'year', 'territory': 'category'}, inplace=True)
+
+# Passo 2: Criar uma nova coluna para agrupar os anos nos intervalos especificados
+def year_group(year):
+    if 1985 <= year <= 1994:
+        return '1985-1994'
+    elif 1995 <= year <= 2004:
+        return '1995-2004'
+    elif 2005 <= year <= 2014:
+        return '2005-2014'
+    elif 2015 <= year <= 2022:
+        return '2015-2022'
+    else:
+        return 'Outro'
+
+df_long['year_group'] = df_long['year'].apply(year_group)
+
+# Encontrar territórios únicos
+unique_territories = df_long['category'].unique()
+
+# Criar um gráfico de box plot para cada território
+for territory in unique_territories:
+    plt.figure(figsize=(12, 6))
+    sns.boxplot(x='year_group', y='area_fire_ha', data=df_long[df_long['category'] == territory])
+    plt.title(f'Distribuição da Área Afetada por Incêndios para {territory}')
+    plt.xlabel('Período')
+    plt.ylabel('Área Afetada por Incêndios (ha)')
+    plt.xticks(rotation=45)
+    plt.show()
+
+# %% Tabela com os Dados Agrupados por Período e Categoria Fundiária
+# Definindo a função para agrupar os anos
+def year_group(year):
+    if 1985 <= year <= 1994:
+        return '1985-1994'
+    elif 1995 <= year <= 2004:
+        return '1995-2004'
+    elif 2005 <= year <= 2014:
+        return '2005-2014'
+    elif 2015 <= year <= 2022:
+        return '2015-2022'
+    else:
+        return 'Outro'
+
+# Aplicando a função ao DataFrame
+df['year_group'] = df['year'].apply(year_group)
+
+# Criando o DataFrame desejado
+df_long = df.groupby(['year_group', 'territory'])['area_fire_ha'].sum()
+
+print(df_long)
+#%%Exportar para .csv
+# Definir o caminho do arquivo de destino
+output_file_path = r"C:\Users\luiz.felipe\Desktop\FLP\Mestrado\etapa_2\data\join_geo\area_group_by_year_territory.csv"
+
+# Exportar o DataFrame para um arquivo CSV
+df_long.to_csv(output_file_path, index=True)
+
+# Imprimir o caminho do arquivo para referência
+print(f'O DataFrame foi exportado para: {output_file_path}')
+
+# %%
+# Carregar o DataFrame
+df_class = pd.read_csv(r"C:\Users\luiz.felipe\Desktop\FLP\Mestrado\etapa_2\data\join_geo\area_group_by_year_territory_class.csv")
+
+# Definir a função class_group
+def class_group(class_id):
+    if class_id == 3:
+        return 'Formação Florestal'
+    elif class_id == 4:
+        return 'Formação Savânica'
+    elif class_id == 9:
+        return 'Silvicultura'
+    elif class_id == 11:
+        return 'Campo Alagado e Área Pantanosa'
+    elif class_id == 12:
+        return 'Formação Campestre'
+    elif class_id == 15:
+        return 'Pastagem'
+    elif class_id == 39:
+        return 'Soja'
+    elif class_id == 41:
+        return 'Outras Lavouras Temporárias'
+    elif class_id == 48:
+        return 'Outras Lavouras Perenes'
+    else:
+        return 'Outro'
+
+# Aplicar a função para criar a nova coluna 'desc_class'
+df_class['desc_class'] = df_class['class'].apply(class_group)
+
+# Aplicar a função para criar a nova coluna 'period'
+df_class['period'] = df_class['year'].apply(year_group)
+
+df_class_group = df_class.groupby(['territory', 'period', 'desc_class'])['area_fire_ha'].sum().reset_index()
+
+# Exibir as primeiras linhas do DataFrame modificado para verificar a nova coluna
+df_class_group
+# %%
