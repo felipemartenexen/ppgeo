@@ -35,6 +35,18 @@ id_to_class = {
     48: 'Outras Lavouras Perenes'
 }
 
+id_to_lev1 = {
+    'Formação Florestal': 'Natural',
+    'Formação Savânica': 'Natural',
+    'Silvicultura': 'Antrópico',
+    'Campo Alagado e Área Pantanosa': 'Natural',
+    'Formação Campestre': 'Natural',
+    'Pastagem': 'Antrópico',
+    'Soja': 'Antrópico',
+    'Outras Lavouras Temporárias': 'Antrópico',
+    'Outras Lavouras Perene': 'Antrópico'
+}
+
 df['NM_MUN'] = df['CD_MUN_NUM'].map(municipality_code_to_name)
 
 df['class_name'] = df['class'].map(id_to_class)
@@ -164,33 +176,261 @@ ax1.set_yticklabels(['{:.0f}k'.format(x/1000) for x in ticks_loc])
 plt.tight_layout()
 plt.show()
 
-#%% Distribuição Fogo - Mês - Ano
+#%% % Fogo - Mês - Ano (%)
+# Calculando o total de área queimada por ano
+total_area_per_year = df_fire_month.groupby('year')['area'].transform('sum')
+
+# Calculando a porcentagem da área por mês em relação ao total anual
+df_fire_month['percentage'] = (df_fire_month['area'] / total_area_per_year) * 100
 
 df_fire_month['month_id'] = df_fire_month['month'].map(month_id)
 df_fire_month.sort_values('month_id', inplace=True, ascending=True)
 
-# Criando a figura
-fig, ax = plt.subplots(figsize=(10, 6))
+# Criando um DataFrame com todas as combinações possíveis de anos e meses
+years = df_fire_month['year'].unique()
+months = range(1, 13)  # 1 a 12 para representar todos os meses
+month_names = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
-# Plotando o heatmap
-sns.heatmap(data=df_fire_month.pivot_table(index="month_id", columns="year", values="area"),
-            annot=False, fmt=".2f", ax=ax)
+# Criando uma lista com todas as combinações possíveis de ano e mês
+from itertools import product
+all_combinations = list(product(years, months))
+
+# Convertendo para DataFrame
+all_comb_df = pd.DataFrame(all_combinations, columns=['year', 'month_id'])
+
+# Mesclando com o df_fire_month original
+# Isso garante que todos os meses de cada ano estejam presentes, mesmo que não haja dados
+df_fire_month_full = pd.merge(all_comb_df, df_fire_month, on=['year', 'month_id'], how='left')
+
+# Preenchendo os valores NaN com 0
+df_fire_month_full['area'].fillna(0, inplace=True)
+df_fire_month_full['percentage'].fillna(0, inplace=True)  # Assumindo que 'percentage' também precisa ser ajustado
+
+# Garantindo que os nomes dos meses estejam presentes (opcional, depende do seu uso)
+df_fire_month_full['month'] = df_fire_month_full['month_id'].apply(lambda x: month_names[x-1])
+
+# Ordenando os dados para melhor visualização
+df_fire_month_full.sort_values(by=['year', 'month_id'], inplace=True)
+
+# Criando a figura
+fig, ax = plt.subplots(figsize=(25, 10))
+
+# Plotando o heatmap com a ordem invertida para os valores do eixo y e usando o gradiente de cores "Reds"
+sns.heatmap(data=df_fire_month_full.pivot_table(index="month_id", columns="year", values="percentage")[::-1],
+            annot=True, fmt=".0f", cmap="Reds", ax=ax, cbar_kws={'label': 'Área Queimada (%)'})
 
 # Definindo labels
 ax.set_xlabel("Ano")
 ax.set_ylabel("Mês")
 
+# Ajustando os labels do eixo y para mostrar os nomes dos meses na ordem correta após a inversão
+# Supondo que você tenha um dicionário ou lista que mapeia month_id para nomes de meses, por exemplo, month_names
+month_names = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+ax.set_yticklabels(month_names[::-1])
+
 # Rotacionando labels do eixo x
 plt.xticks(rotation=45)
 
 # Adicionando título
-plt.title("Heatmap da Área")
+plt.title("Área Queimada Mensal")
 
 # Mostrando o gráfico
 plt.show()
+
+
+#%% km2 Fogo - Mês - Ano
+
+df_fire_month['month_id'] = df_fire_month['month'].map(month_id)
+df_fire_month.sort_values('month_id', inplace=True, ascending=True)
+
+# Criando um DataFrame com todas as combinações possíveis de anos e meses
+years = df_fire_month['year'].unique()
+months = range(1, 13)  # 1 a 12 para representar todos os meses
+month_names = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+
+# Criando uma lista com todas as combinações possíveis de ano e mês
+from itertools import product
+all_combinations = list(product(years, months))
+
+# Convertendo para DataFrame
+all_comb_df = pd.DataFrame(all_combinations, columns=['year', 'month_id'])
+
+# Mesclando com o df_fire_month original
+# Isso garante que todos os meses de cada ano estejam presentes, mesmo que não haja dados
+df_fire_month_full = pd.merge(all_comb_df, df_fire_month, on=['year', 'month_id'], how='left')
+
+# Preenchendo os valores NaN com 0
+df_fire_month_full['area'].fillna(0, inplace=True)
+df_fire_month_full['area'].fillna(0, inplace=True)  # Assumindo que 'percentage' também precisa ser ajustado
+
+# Garantindo que os nomes dos meses estejam presentes (opcional, depende do seu uso)
+df_fire_month_full['month'] = df_fire_month_full['month_id'].apply(lambda x: month_names[x-1])
+
+# Ordenando os dados para melhor visualização
+df_fire_month_full.sort_values(by=['year', 'month_id'], inplace=True)
+
+# Criando a figura
+fig, ax = plt.subplots(figsize=(25, 10))
+
+# Plotando o heatmap com a ordem invertida para os valores do eixo y e usando o gradiente de cores "Reds"
+sns.heatmap(data=df_fire_month_full.pivot_table(index="month_id", columns="year", values="area")[::-1],
+            annot=True, fmt=".0f", cmap="Reds", ax=ax, cbar_kws={'label': 'Área Queimada km²)'})
+
+# Definindo labels
+ax.set_xlabel("Ano")
+ax.set_ylabel("Mês")
+
+# Ajustando os labels do eixo y para mostrar os nomes dos meses na ordem correta após a inversão
+# Supondo que você tenha um dicionário ou lista que mapeia month_id para nomes de meses, por exemplo, month_names
+month_names = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+ax.set_yticklabels(month_names[::-1])
+
+# Rotacionando labels do eixo x
+plt.xticks(rotation=45)
+
+# Adicionando título
+plt.title("Área Queimada Mensal")
+
+# Mostrando o gráfico
+plt.show()
+
+#%% Uso e Cobertura
+# Agrupando os dados por ano e classe de uso e cobertura do solo
+area_por_classe_ano = df.pivot_table(values='area', index='year', columns='class_name', aggfunc='sum', fill_value=0)
+
+# Definindo a ordem específica e as cores para cada classe de uso e cobertura do solo
+ordem_classes = [
+    'Formação Florestal', 
+    'Formação Campestre', 
+    'Campo Alagado e Área Pantanosa', 
+    'Formação Savânica', 
+    'Outras Lavouras Perenes', 
+    'Outras Lavouras Temporárias', 
+    'Pastagem', 
+    'Silvicultura', 
+    'Soja'
+]
+
+cores_classes = {
+    'Formação Florestal': '#1f8d49',
+    'Formação Campestre': '#d6bc74',
+    'Campo Alagado e Área Pantanosa': '#519799',
+    'Formação Savânica': '#7dc975',
+    'Outras Lavouras Perenes': '#e6ccff',
+    'Outras Lavouras Temporárias': '#f54ca9',
+    'Pastagem': '#edde8e',
+    'Silvicultura': '#7a5900',
+    'Soja': '#f5b3c8'
+}
+
+# Função para formatar os valores do eixo Y com separador de milhar como ponto
+def custom_formatter(x, pos):
+    return f'{x:,.0f}'.replace(',', '.')
+
+# Reorganizando as colunas do DataFrame de acordo com a ordem definida
+area_por_classe_ano_ordenado = area_por_classe_ano[ordem_classes]
+
+# Gerando o gráfico de barras empilhadas
+fig, ax = plt.subplots(figsize=(18, 10))
+area_por_classe_ano_ordenado.plot(kind='bar', stacked=True, color=[cores_classes[col] for col in ordem_classes], ax=ax)
+
+# Formatando o eixo y para usar ponto como separador de milhar
+ax.yaxis.set_major_formatter(mticker.FuncFormatter(custom_formatter))
+
+plt.title('Área Queimada por Classe de Uso e Cobertura do Solo por Ano (km²)', fontweight='bold')
+plt.xlabel('Ano', fontweight='bold')
+plt.ylabel('Área Queimada (km²)', fontweight='bold')
+plt.legend(loc='upper left', ncol=1, fontsize='10')
+plt.tight_layout()
+
+plt.show()
+
+#%% Uso do Solo Normalizado
+# Normalizando os dados para que cada coluna empilhada some 100%
+area_normalizada = area_por_classe_ano_ordenado.div(area_por_classe_ano_ordenado.sum(axis=1), axis=0) * 100
+
+# Gerando o gráfico de barras empilhadas normalizado com a legenda ajustada para 2 linhas centralizadas abaixo do gráfico
+fig, ax = plt.subplots(figsize=(18, 10))
+area_normalizada.plot(kind='bar', stacked=True, color=[cores_classes[col] for col in ordem_classes], ax=ax, fontsize='12')
+
+plt.title('Distribuição Percentual da Área Queimada por Classe de Uso e Cobertura do Solo por Ano', fontweight='bold', fontsize='12', fontname='Times New Roman')
+plt.xlabel('Ano', fontweight='bold', fontsize='12', fontname='Times New Roman')
+plt.ylabel('Percentual da Área Queimada (%)', fontweight='bold', fontsize='12', fontname='Times New Roman')
+# Ajustando a legenda para 2 linhas centralizadas
+leg = plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=int(len(ordem_classes)/2 + 0.5), fontsize='12', frameon=False)
+leg.set_title(None)  # Removendo o título da legenda
+
+for text in leg.get_texts():
+    text.set_fontname('Times New Roman')
+
+# Ajustando a fonte dos valores dos eixos para Times New Roman
+for tick in ax.get_xticklabels():
+    tick.set_fontname('Times New Roman')
+for tick in ax.get_yticklabels():
+    tick.set_fontname('Times New Roman')
+
+
+plt.tight_layout()
+
+plt.show()
 #%%Export
 
-output_file_path = r"C:\Users\luiz.felipe\Desktop\FLP\Mestrado\etapa_1\data\df_fire_month_v1.csv"
+output_file_path = r"C:\Users\luiz.felipe\Desktop\FLP\Mestrado\etapa_1\data\df_normalized_by_class.csv"
 
-df_fire_month.to_csv(output_file_path, index=True)
-# %%
+area_normalizada.to_csv(output_file_path, index=True)
+# %% Gráfico Rosca Uso e Cobertura do Solo
+class_name_custom = {
+    "Campo Alagado e Área Pantanosa": "Campo Alagado e Área Pantanosa",
+    "Formação Campestre": "Formação Campestre",
+    "Formação Florestal": "Formação Florestal",
+    "Formação Savânica": "Formação Savânica",
+    "Pastagem": "Pastagem",
+    "Soja": "Outros Usos Agropecuários",
+    "Silvicultura": "Outros Usos Agropecuários",
+    "Outras Lavouras Perenes": "Outros Usos Agropecuários",
+    "Outras Lavouras Temporárias": "Outros Usos Agropecuários"
+}
+
+# Criar um DataFrame a partir dos dados fornecidos
+df['class_name_v2'] = df['class_name'].map(class_name_custom)
+
+df_grouped_by_class = df.groupby(['class_name_v2'])['area'].sum().reset_index()
+
+# Cores personalizadas para cada classe
+colors_custom = {
+    "Campo Alagado e Área Pantanosa": "#519799",
+    "Formação Campestre": "#d6bc74",
+    "Formação Florestal": "#1f8d49",
+    "Formação Savânica": "#7dc975",
+    "Pastagem": "#edde8e",
+    "Outros Usos Agropecuários": "#FFFFB2"
+}
+
+# Função de formatação personalizada para autopct que usa vírgula como separador decimal
+def autopct_format(values):
+    def my_format(pct):
+        return '{v:,}'.format(v=pct.round(1)).replace('.', ',') + '%'
+    return my_format
+    
+# Definir as configurações da fonte para usar em todo o gráfico
+font_settings = {'family': 'Times New Roman', 'size': 12}
+plt.rc('font', **font_settings)
+
+# Criar o gráfico de rosca com as configurações de fonte ajustadas
+plt.figure(figsize=(10, 6))
+patches, texts, autotexts = plt.pie(df_grouped_by_class['area'], labels=df_grouped_by_class['class_name_v2'], autopct=autopct_format(df_grouped_by_class['area']),
+                                    startangle=180, pctdistance=0.85, colors=[colors_custom[label] for label in df_grouped_by_class['class_name_v2']],
+                                    wedgeprops=dict(width=0.4))
+
+# Ajustar a fonte para Times New Roman, tamanho 12 para todos os textos
+for text in texts + autotexts:
+    text.set_fontsize(12)
+    text.set_fontname('Times New Roman')
+
+# Desenhar um círculo no centro para tornar o gráfico um gráfico de rosca
+centre_circle = plt.Circle((0,0),0.70,fc='white')
+fig = plt.gcf()
+fig.gca().add_artist(centre_circle)
+
+plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+plt.show()
