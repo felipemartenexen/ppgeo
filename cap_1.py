@@ -80,12 +80,15 @@ plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams['font.size'] = 12
 
 # Plotando os dados, a tendência e a linha da média
-plt.figure(figsize=(10, 6))
+ax = plt.figure(figsize=(10, 6))
 plt.plot(df_fire_year["year"], df_fire_year["area"], label='Área Queimada (km²)', marker='o', color='red')
 plt.plot(df_fire_year["year"], df_fire_year["trend"], label='Tendência Linear', linestyle='--', color='black')
 plt.axhline(y=media_area_queimada, color='blue', linestyle='-', label='Média Área Queimada')
 
-plt.title('Análise Temporal das Áreas Queimadas (1985-2022)')
+# Função para formatar os valores do eixo Y com separador de milhar como ponto
+def custom_formatter(x, pos):
+    return f'{x:,.0f}'.replace(',', '.')
+
 plt.xlabel('Ano')
 plt.ylabel('Área Queimada (km²)')
 plt.legend()
@@ -169,27 +172,37 @@ month_id = {
     'Nov': 11,
     'Dez': 12 
 }
+# Configurando a fonte globalmente
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams['font.size'] = 12
+
+# Função para formatar os valores do eixo Y com separador de milhar como ponto
+def custom_formatter(x, pos):
+    return f'{x:,.0f}'.replace(',', '.')
+
 
 df_fire_month_grouped['month_id'] = df_fire_month_grouped['month'].map(month_id)
-
-# Ordenando os dados pelo mês numericamente para garantir a sequência de Janeiro a Dezembro
 df_fire_month_grouped.sort_values('month_id', inplace=True)
-# Criando o gráfico de barras com porcentagem
-# Recriando o gráfico com a correção para garantir que os rótulos estejam na ordem correta
-fig, ax1 = plt.subplots(figsize=(14, 8))
+
+# Configurando a fonte para Times New Roman, tamanho 12
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams['font.size'] = 14
+
+# Função para formatar os valores do eixo Y com separador de milhar como ponto
+def custom_formatter(x, pos):
+    return f'{x:,.0f}'.replace(',', '.')
+
+fig, ax1 = plt.subplots(figsize=(14, 10))
 sns.barplot(x='month', y='area', data=df_fire_month_grouped, color='red', ax=ax1)
-ax1.set_title('Área Queimada Mensal')
 ax1.set_xlabel('Mês')
 ax1.set_ylabel('Área Queimada (km²)')
 
-# Corrigindo a posição dos rótulos
+# Adicionando etiquetas com porcentagens e valores
 for i, (index, row) in enumerate(df_fire_month_grouped.iterrows()):
     ax1.text(i, row['area'], f"{row['area']/1000:.2f}k\n({row['percentage']:.2f}%)", color='black', ha="center", va='bottom')
 
-# Ajustando o eixo Y à esquerda para mostrar os valores em 'k' (milhares)
-ticks_loc = ax1.get_yticks().tolist()
-ax1.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
-ax1.set_yticklabels(['{:.0f}k'.format(x/1000) for x in ticks_loc])
+# Ajuste do formato do eixo Y para utilizar ponto como separador de milhar
+ax1.yaxis.set_major_formatter(mticker.FuncFormatter(custom_formatter))
 
 plt.tight_layout()
 plt.show()
@@ -346,6 +359,10 @@ cores_classes = {
     'Mineração': '#9c0027'
 }
 
+# Configurando a fonte globalmente
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams['font.size'] = 18
+
 # Função para formatar os valores do eixo Y com separador de milhar como ponto
 def custom_formatter(x, pos):
     return f'{x:,.0f}'.replace(',', '.')
@@ -360,10 +377,11 @@ area_por_classe_ano_ordenado.plot(kind='bar', stacked=True, color=[cores_classes
 # Formatando o eixo y para usar ponto como separador de milhar
 ax.yaxis.set_major_formatter(mticker.FuncFormatter(custom_formatter))
 
-plt.title('Área Queimada por Classe de Uso e Cobertura do Solo por Ano (km²)', fontweight='bold')
-plt.xlabel('Ano', fontweight='bold')
-plt.ylabel('Área Queimada (km²)', fontweight='bold')
-plt.legend(loc='upper left', ncol=1, fontsize='10')
+plt.xlabel('Ano')
+plt.ylabel('Área Queimada (km²)')
+# Ajustando a legenda para 2 linhas centralizadas
+leg = plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=int(len(ordem_classes)/2 + 0.5), frameon=False)
+leg.set_title(None)  # Removendo o título da legenda
 plt.tight_layout()
 
 plt.show()
@@ -372,15 +390,18 @@ plt.show()
 # Normalizando os dados para que cada coluna empilhada some 100%
 area_normalizada = area_por_classe_ano_ordenado.div(area_por_classe_ano_ordenado.sum(axis=1), axis=0) * 100
 
+# Configurando a fonte globalmente
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams['font.size'] = 18
+
 # Gerando o gráfico de barras empilhadas normalizado com a legenda ajustada para 2 linhas centralizadas abaixo do gráfico
 fig, ax = plt.subplots(figsize=(18, 10))
-area_normalizada.plot(kind='bar', stacked=True, color=[cores_classes[col] for col in ordem_classes], ax=ax, fontsize='12')
+area_normalizada.plot(kind='bar', stacked=True, color=[cores_classes[col] for col in ordem_classes], ax=ax)
 
-plt.title('Distribuição Percentual da Área Queimada por Classe de Uso e Cobertura do Solo por Ano', fontweight='bold', fontsize='12', fontname='Times New Roman')
-plt.xlabel('Ano', fontweight='bold', fontsize='12', fontname='Times New Roman')
-plt.ylabel('Percentual da Área Queimada (%)', fontweight='bold', fontsize='12', fontname='Times New Roman')
+plt.xlabel('Ano', fontname='Times New Roman')
+plt.ylabel('Percentual da Área Queimada (%)', fontname='Times New Roman')
 # Ajustando a legenda para 2 linhas centralizadas
-leg = plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=int(len(ordem_classes)/2 + 0.5), fontsize='12', frameon=False)
+leg = plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=int(len(ordem_classes)/2 + 0.5), frameon=False)
 leg.set_title(None)  # Removendo o título da legenda
 
 for text in leg.get_texts():
@@ -740,6 +761,30 @@ ax.yaxis.set_major_formatter(mticker.FuncFormatter(custom_formatter))
 
 plt.grid(False)
 plt.tight_layout()
+plt.show()
+
+#%% Polulação RI Xingu
+df_populacao = pd.read_csv(r'C:\Users\luiz.felipe\Desktop\FLP\Mestrado\etapa_1\data\populacao_urbana_rural_v4.csv')
+
+print(df_populacao.head())
+
+plt.figure(figsize=(10, 6))
+plt.plot(df_plot.index, df_plot["Urbana"] * 1000, label="População Urbana", marker='o')  # Multiplicando por 1000
+plt.plot(df_plot.index, df_plot["Rural"] * 1000, label="População Rural", marker='x')  # Multiplicando por 1000
+
+plt.xlabel("Ano", fontsize=12, fontname="Times New Roman")
+plt.ylabel("Quantidade de Habitantes", fontsize=12, fontname="Times New Roman")
+
+# Ajustando o tamanho da fonte dos ticks (valores dos eixos)
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
+
+plt.legend(fontsize=12)
+plt.grid(False)
+
+# Ajustando o formato do eixo Y para mostrar números inteiros completos com ponto como separador de milhares
+plt.gca().get_yaxis().set_major_formatter(plt.matplotlib.ticker.FuncFormatter(lambda x, _: format(int(x), ',').replace(',', '.')))
+
 plt.show()
 
 
