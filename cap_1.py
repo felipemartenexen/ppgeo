@@ -13,7 +13,7 @@ df = pd.read_csv(r"C:\Users\luiz.felipe\Desktop\FLP\Mestrado\etapa_1\data\areas_
 
 df = df.drop(columns=['.geo', 'system:index'])
 
-municipality_code_to_name = {
+municipality_code_to_name = { 
     1500602: 'Altamira',
     1505650: 'Placas',
     1508159: 'Uruará',
