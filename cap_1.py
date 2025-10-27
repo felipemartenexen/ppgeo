@@ -9,7 +9,7 @@ import matplotlib.ticker as mticker
 from matplotlib.ticker import FuncFormatter
 
 #%%Preparo dos dados
-df = pd.read_csv(r"C:\Users\luiz.felipe\Desktop\FLP\Mestrado\etapa_1\data\areas_rix_fire_lulc_year_v2.csv")
+df = pd.read_csv(r"D:\FLP\Mestrado\etapa_1\data\areas_rix_fire_lulc_year_v2.csv")
 
 df = df.drop(columns=['.geo', 'system:index'])
 
