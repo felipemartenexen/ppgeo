@@ -1,4 +1,4 @@
-system:index,Classe,Nome,class_name_n1,class_name_n4,territory,year,Área ha,.geo
+system:index,Classe,Nome,class_name_n1,class_name_n4,territory,year,area_ha,.geo
 0_0_0,3,Altamira,Floresta,Formação Florestal,1500602.0,1985,6.826305719177257,"{""type"":""MultiPoint"",""coordinates"":[]}"
 0_0_1,4,Altamira,Floresta,Formação Savânica,1500602.0,1985,22.938318389953206,"{""type"":""MultiPoint"",""coordinates"":[]}"
 0_0_2,6,Altamira,Floresta,Floresta Alagável,1500602.0,1985,0.8445631914672848,"{""type"":""MultiPoint"",""coordinates"":[]}"
