@@ -1,4 +1,4 @@
-system:index,area,class,territory,year,.geo
+system:index,area_km2,class,territory,year,.geo
 0_0_0,60.63230084613066,1,1500602.0,1985,"{""type"":""MultiPoint"",""coordinates"":[]}"
 0_1_0,1.6613084337158233,1,1500859.0,1985,"{""type"":""MultiPoint"",""coordinates"":[]}"
 0_2_0,0.7612084917602545,1,1501725.0,1985,"{""type"":""MultiPoint"",""coordinates"":[]}"
